@@ -1,0 +1,69 @@
+<!-- /*
+Internet Applications - Assignment 2
+Rahul Seth
+17302557
+client Side -->
+
+<!DOCTYPE html>
+<html>
+    <head>
+      <meta charset="utf-8">
+      <title>Assign 2 - Rahul Seth (17302557)</title>
+      <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+      <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    </head>
+    
+    <body>
+        <div id="app">
+            <h1>AWS Movie Assignment</h1>
+            <button v-on:click="createDatabse"> Create Database </button>
+            <br>
+            <br>
+            <input v-model="movie" placeholder="Enter Movie">
+            <input v-model="year" placeholder="Enter Year of Release">
+            <input v-model="rating" placeholder="Enter Rating">
+            <button v-on:click="query"> Query Database </button>
+            <br>
+            <br>
+            <button v-on:click="destroy"> Destroy Database </button>
+        </div>
+
+        <script>
+            var app = new Vue({
+                el: '#app',
+                data:{
+                    movie: "",
+                    year: "",
+                    response: []
+                },
+
+                methods:{
+                    createDatabase: crtDatabase,
+                    query: query_,
+                    destroy: destroy
+                }
+            })
+
+            function crtDatabase(){
+                console.log("Contacting Server now.\n")
+                let url = ("http://localhost:3000");
+                prom = axios.get(url)
+
+
+
+            }
+
+            function query_(){
+
+            }
+
+            function destroy(){
+
+            }
+
+
+
+
+        </script>
+    </body>
+</html>
