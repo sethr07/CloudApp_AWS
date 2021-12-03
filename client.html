@@ -1,69 +1,66 @@
-<!-- /*
-Internet Applications - Assignment 2
+<!----
 Rahul Seth
 17302557
-client Side -->
+
+CSU44000 Internet Applications
+Assignment#2 – A Simple Cloud Application
+-->
 
 <!DOCTYPE html>
-<html>
-    <head>
-      <meta charset="utf-8">
-      <title>Assign 2 - Rahul Seth (17302557)</title>
-      <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-      <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    </head>
-    
-    <body>
-        <div id="app">
-            <h1>AWS Movie Assignment</h1>
-            <button v-on:click="createDatabse"> Create Database </button>
-            <br>
-            <br>
-            <input v-model="movie" placeholder="Enter Movie">
-            <input v-model="year" placeholder="Enter Year of Release">
-            <input v-model="rating" placeholder="Enter Rating">
-            <button v-on:click="query"> Query Database </button>
-            <br>
-            <br>
-            <button v-on:click="destroy"> Destroy Database </button>
-        </div>
+<html lang="en">
 
-        <script>
-            var app = new Vue({
-                el: '#app',
-                data:{
-                    movie: "",
-                    year: "",
-                    response: []
-                },
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Assignment 2- Rahul Seth</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
 
-                methods:{
-                    createDatabase: crtDatabase,
-                    query: query_,
-                    destroy: destroy
-                }
-            })
+<body>
+    <div id="app">
+        <h1>Movie App Dashboard</h1>
+        <button v-on:click="Create">Create Database</button><br><br>
+        Enter Title: <input v-model="title"> Enter Year: <input v-model="year"> Enter Rating: <input v-model="rating">
+        <button v-on:click="Query(year, title, rating)">Query Database</button><br><br>
+        <button v-on:click="Destroy ">Destroy Database</button><br>
+    </div>
 
-            function crtDatabase(){
-                console.log("Contacting Server now.\n")
-                let url = ("http://localhost:3000");
-                prom = axios.get(url)
-
-
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                title: '',
+                year: '',
+                rating: '',
+                responseList: [],
+            },
+            methods: {
+                Create: create,
+                Destroy: destroy
 
             }
+        })
 
-            function query_(){
+        function create() {
+            console.log("Calling for server.js \n")
+            let prom = fetch('/createDB')
+            prom.then(response => response.json())
+                .then(response => {
+                })
+        }
 
-            }
+        function destroy() {
+            console.log("Calling for server to delete table. \n")
+            let prom = fetch('/destroyDB')
+            prom.then(response => response.json())
+                .then(response => {
+                })
+        }
 
-            function destroy(){
-
-            }
 
 
+    </script>
+</body>
 
-
-        </script>
-    </body>
 </html>
