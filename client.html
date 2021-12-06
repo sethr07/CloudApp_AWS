@@ -4,6 +4,7 @@ Rahul Seth
 
 CSU44000 Internet Applications
 Assignment#2 – A Simple Cloud Application
+
 -->
 
 <!DOCTYPE html>
@@ -23,22 +24,55 @@ Assignment#2 – A Simple Cloud Application
         <button v-on:click="Create">Create Database</button><br><br>
         Enter Title: <input v-model="title"> Enter Year: <input v-model="year"> Enter Rating: <input v-model="rating">
         <button v-on:click="Query(year, title, rating)">Query Database</button><br><br>
-        <button v-on:click="Destroy ">Destroy Database</button><br>
+        <table border = "1">
+            <thead>
+                <tr>
+                    <th>Movie</th>
+                    <th>Realse Year</th>
+                    <th>Movie Rank</th>
+                    <th>Movie Rating</th>
+                    <br>Movie info for ----{{title}} will be displayed below. <br>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr v-for = "movies in results.movies">
+                    <th>{{movies.title}}</th>
+                    <th>{{movies.year}}</th>
+                    <th>{{movies.rank}}</th>
+                    <th>{{movies.rating}}</th>
+                </tr>
+            </tbody>
+
+        </table>
+        <br><br> <button v-on:click="Destroy ">Destroy Database</button><br>
     </div>
 
     <script>
+        const myHeaders = new Headers();
+        myHeaders.append(
+            "Access-Control-Allow-Origin",
+            "http://localhost:3000"
+            );
+        const myInit = {
+            method: "GET",
+            headers: myHeaders,
+            cache: "default",
+            mode: "cors"
+        };
+        
         var app = new Vue({
             el: "#app",
             data: {
-                title: '',
-                year: '',
-                rating: '',
-                responseList: [],
+                title: "",
+                year: "",
+                rating: "",
+                results: ""
             },
             methods: {
                 Create: create,
+                Query: query,
                 Destroy: destroy
-
             }
         })
 
@@ -50,6 +84,21 @@ Assignment#2 – A Simple Cloud Application
                 })
         }
 
+        function query(year, title, rating){
+           
+            const queryUrl = "http://localhost:3000/queryDB/" + title + "/" + year + "/" + rating;
+            var queryRequest = new Request(queryUrl, myInit);
+            
+            fetch(queryRequest)
+                .then(response => {
+                    return response.json();
+               })
+               .then(data =>{
+                   this.results = data;
+                   //console.log(data)
+                });
+            }
+
         function destroy() {
             console.log("Calling for server to delete table. \n")
             let prom = fetch('/destroyDB')
@@ -57,10 +106,6 @@ Assignment#2 – A Simple Cloud Application
                 .then(response => {
                 })
         }
-
-
-
-    </script>
-</body>
-
+        </script>    
+    </body>
 </html>
