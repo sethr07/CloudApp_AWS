@@ -18,23 +18,21 @@ Object Key (FileName):moviedata.json
 
 // importing required constraints 
 "use strict";
-const port = 3000;
-var AWS = require("aws-sdk");
-const express = require('express');
+const port = 3000; //port serving localhost
+var AWS = require("aws-sdk"); // for using dynamdb through aws cli
+const express = require('express'); // using express 
 const path = require("path")
 const cors = require("cors")
-const { title } = require("process");
-const request = require('request');
 const app = express();
 const BUCKET= "csu44000assignment220";
 const FILE_LOCATION = "moviedata.json";
 app.use(cors())
 //----------------------------------------------------------//
-var publicKey = "AKIASB2UNOY25X3IHVJW";
-var privateKey = "Cjmbo3sJ7tZeElY1nR/4qyxwoxiFKEtzLXAZiaC8";
+var publicKey = "";
+var privateKey = "";
 //----------------------------------------------------------//
 // Variables & parameters used
-var s3_movies;
+var s3_movies; //to store movie data from s3 bucket
 const TABLE_PARAMS =  {
     TableName : "Movies",
     KeySchema: [       
@@ -46,8 +44,8 @@ const TABLE_PARAMS =  {
         { AttributeName: "title", AttributeType: "S" }
     ],
     ProvisionedThroughput: {       
-        ReadCapacityUnits: 20, 
-        WriteCapacityUnits: 20
+        ReadCapacityUnits: 1, 
+        WriteCapacityUnits: 1
     }
 };
 const del_params = {
@@ -60,10 +58,10 @@ const BUCKET_PARAMS = {
 //----------------------------------------------------------//
 //AWS config
 AWS.config.update({
-    maxRetries: 5, 
-    retryDelayOptions: {base: 500},
-    httpOptions: {timeout: 30000, connectTimeout: 5000},
-    region: 'eu-west-1',
+    maxRetries: 5, // for provisoin throughput error
+    retryDelayOptions: {base: 500}, // for provisoin throughput error
+    httpOptions: {timeout: 30000, connectTimeout: 5000}, // for provisoin throughput error
+    region: 'eu-west-1', 
     accessKeyId: publicKey,
     secretAccessKey: privateKey,
 });
@@ -107,7 +105,7 @@ function destroyTable(){
 //----------------------------------------------------------//
 //Creating Table
 app.get('/createDB', (req, res) => {
-    
+    //creating table
     createTable();
     //populating database from s3 bucket
     s3.getObject(BUCKET_PARAMS, function(err, data) {
@@ -115,9 +113,10 @@ app.get('/createDB', (req, res) => {
             console.log("Unable to reach s3 bucket.\n", err)
         }
         else{
-            console.log("Data retreival successful.\n")
+            console.log("Connection to s3 success. Starting Data retreival.\n")
             s3_movies = JSON.parse(data.Body.toString());
-            //console.log(s3_movies);
+            //Storing movies from s3 bucket to table
+            //I used 5 subfields - year, title, rank, rating, release date  
             s3_movies.forEach(function (movie)  {
                 var s3_params = {
                     TableName: "Movies",
@@ -139,61 +138,69 @@ app.get('/createDB', (req, res) => {
                         console.log("Movie added successfully: " + movie.title + " " + movie.year + " " + movie.info.rank + " " + movie.info.rating);
                     }
                 });
-                console.log("Done adding movies.\n")
             });
         }
     })
 });
 //----------------------------------------------------------//
 //Querying Databse
-app.get('/queryDB/:title/:year', (req, res) => {
+app.get('/queryDB/:title/:year/:rating', (req, res) => {
 
     console.log("Querying Database.\n");
     var docClient = new AWS.DynamoDB.DocumentClient();
-    var qData = {
+    //for storing query data
+    var client_Data = {
         "movies": []
     };
+    //parsing out the 3 parameters for query
+    let year = parseInt(req.params.year); // user entered year
+    let user_rating = parseFloat(req.params.rating); // user entered rating
+    let title = req.params.title; //user entered title
 
-    let year = parseInt(req.params.year);
-    let rating = parseFloat(req.params.rating);
-    let title = req.params.title;
-
-    var params = {
-        TableName: "Movies",
-        KeyConditionExpression: "#yr = :yyyy and begins_with(title, :s)",
+    //Query Parameters 
+    //Query starts with finding out movies in the enterd year.
+    //It then filters the movies according to the entered title or string
+    var query_params = {
+        TableName: "Movies",    
+        KeyConditionExpression: "#yr = :yyyy and begins_with(title, :t)",
         ExpressionAttributeNames:{
             "#yr": "year"
         },
         ExpressionAttributeValues: {
             ":yyyy": year,
-            ":s": title
+            ":t": title
         }
     };
-
-    //quesrying here
-    docClient.query(params, function(err, data)  {
+    //querying here
+    docClient.query(query_params, function(err, data)  {
         if(err){
-            console.log("error quesrying database.\n");
+            console.log("Error querying database.\n");
         }
         else{
             console.log("Query Success.\n", JSON.stringify(data, null, 2));
+            //This is the third step in filtering out the movies. 
+            //It only stores movies with the rating higher than the entered ratiing
+            //Then storoes movies which are then sent to the client
             data.Items.forEach(function(item) {
-                console.log(item);
-                let movie = {"year": item.year, "title": item.title, "release_date": item.release_date, "rank": item.rank, "rating": item.rating}
-                console.log("Printing movie car: \n");
-                console.log(movie)
-                qData.movies.push(movie);
+                if(item.rating >= user_rating){ 
+                    console.log(item); //search result
+                    let movie = {"year": item.year, "title": item.title, "release_date": item.release_date, "rank": item.rank, "rating": item.rating}
+                    console.log("Adding item to client data: ", movie);
+                    console.log("\n")
+                    client_Data.movies.push(movie); //adding to list
+                }
             });
 
-            console.log("printing data top be sent:\n")
-            console.log(qData)
+            if(client_Data != undefined){
+                console.log("No search results.\n");
+            }
+
+            console.log("Printing Data to be sent:\n")
+            console.log(client_Data)
         }
-        console.log("Test print")
-        console.log(qData)
-        res.send(qData)
+        res.send(client_Data)
     })
 });
-
 //----------------------------------------------------------//
 //Destroying Table
 app.get('/destroyDB', (req, res) => {
