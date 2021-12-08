@@ -24,6 +24,7 @@ Assignment#2 – A Simple Cloud Application
         <button v-on:click="Create">Create Database</button><br><br>
         Enter Title: <input v-model="title"> Enter Year: <input v-model="year"> Enter Rating: <input v-model="rating">
         <button v-on:click="Query(year, title, rating)">Query Database</button><br><br>
+
         <table border = "1">
             <thead>
                 <tr>
@@ -31,7 +32,7 @@ Assignment#2 – A Simple Cloud Application
                     <th>Realse Year</th>
                     <th>Movie Rank</th>
                     <th>Movie Rating</th>
-                    <br>Movie info for ----{{title}} will be displayed below. <br>
+                    <br>Movie info starting with: {{title}} in year: {{year}} with a minimum rating of {{rating}} will be displayed below. <br>
                 </tr>
             </thead>
 
@@ -49,15 +50,8 @@ Assignment#2 – A Simple Cloud Application
     </div>
 
     <script>
-        const myHeaders = new Headers();
-        myHeaders.append(
-            "Access-Control-Allow-Origin",
-            "http://localhost:3000"
-            );
         const myInit = {
             method: "GET",
-            headers: myHeaders,
-            cache: "default",
             mode: "cors"
         };
         
@@ -78,10 +72,15 @@ Assignment#2 – A Simple Cloud Application
 
         function create() {
             console.log("Calling for server.js \n")
-            let prom = fetch('/createDB')
-            prom.then(response => response.json())
-                .then(response => {
-                })
+
+            const createUrl = "http://localhost:3000/createDB";
+            var createRequest = new Request(createUrl, myInit);
+            fetch(createRequest)
+            .then(response => { 
+                response.json();
+            })
+            .then(response =>{
+                });
         }
 
         function query(year, title, rating){
@@ -95,16 +94,21 @@ Assignment#2 – A Simple Cloud Application
                })
                .then(data =>{
                    this.results = data;
-                   //console.log(data)
                 });
             }
 
         function destroy() {
             console.log("Calling for server to delete table. \n")
-            let prom = fetch('/destroyDB')
-            prom.then(response => response.json())
-                .then(response => {
-                })
+
+            const deleteUrl = "http://localhost:3000/deleteDB";
+            var deleteRequest = new Request(createUrl, myInit);
+            fetch(deleteRequest)
+            .then(response => { 
+                response.json();
+            })
+            .then(response =>{
+                });
+            
         }
         </script>    
     </body>
